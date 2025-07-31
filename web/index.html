@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google</title>
+
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+
+  <style>
+    /* ---- Google‑style layout ---- */
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Logo using Google colours */
+    #logo {
+      font-size: 4rem;
+      font-weight: 700;
+      letter-spacing: -2px;
+      margin-bottom: 32px;
+    }
+
+    #logo span:nth-child(1) {
+      color: #4285f4;
+    }
+
+    /* G */
+    #logo span:nth-child(2) {
+      color: #ea4335;
+    }
+
+    /* o */
+    #logo span:nth-child(3) {
+      color: #fbbc05;
+    }
+
+    /* o */
+    #logo span:nth-child(4) {
+      color: #4285f4;
+    }
+
+    /* g */
+    #logo span:nth-child(5) {
+      color: #34a853;
+    }
+
+    /* l */
+    #logo span:nth-child(6) {
+      color: #ea4335;
+    }
+
+    /* e */
+
+    /* Search bar container */
+    #search-container {
+      position: relative;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    /* Input styling */
+    #search-input {
+      /* width: 100%; */
+      font-size: 1.1rem;
+      padding: 12px 48px 12px 16px;
+      border: 1px solid #dfe1e5;
+      border-radius: 24px;
+      outline: none;
+      box-sizing: border-box;
+      transition: box-shadow 0.2s, border 0.2s;
+    }
+
+    #search-input:focus {
+      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+      border-color: transparent;
+    }
+
+    /* Microphone button */
+    #mic-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    #mic-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: #4285f4;
+      transition: transform 0.2s;
+    }
+
+    #mic-btn.active svg {
+      transform: scale(1.15);
+    }
+
+    /* Prediction read‑out */
+    #result {
+      margin-top: 24px;
+      font-size: 1.2rem;
+      color: #555;
+      min-height: 1.2rem;
+      /* reserve space */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Google‑style logo (text version) -->
+  <div id="logo">
+    <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+  </div>
+
+  <!-- Search bar with microphone -->
+  <div id="search-container">
+    <input id="search-input" type="text" placeholder="Search" />
+    <button id="mic-btn" aria-label="Voice search">
+      <!-- Material mic icon (24 × 24) -->
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M12 15a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zm-5 8v4h-2v-4h2z" />
+      </svg>
+    </button>
+  </div>
+
+  <div id="result"></div>
+
+  <script type="module">
+    import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/esm/ort.min.js'
+
+    /* ---- MODEL CONFIG ---- */
+    const MODEL_URL = '/static/model.onnx' // <–– drop your model beside this file
+    const SAMPLE_RATE = 16_000 // Hz expected by the model
+    const CLIP_LEN = SAMPLE_RATE // 1‑second window
+    const WASM_PATH = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/'
+
+    /* ---- GLOBAL STATE ---- */
+    let session
+    let ctx
+    let ring = new Float32Array(CLIP_LEN)
+    let ringPos = 0
+    let listening = false
+
+    /* ---- ORT init ---- */
+    ort.env.wasm.wasmPaths = WASM_PATH
+    async function loadModel() {
+      if (session) return session
+      session = await ort.InferenceSession.create(MODEL_URL, {
+        executionProviders: ['wasm']
+      })
+      console.log('Model ready:', session.inputNames, session.outputNames)
+      return session
+    }
+
+    /* ---- Resample helper (naïve) ---- */
+    function downsample(buf, ratio) {
+      const n = Math.floor(buf.length / ratio)
+      const out = new Float32Array(n)
+      for (let i = 0; i < n; ++i) out[i] = buf[i * ratio]
+      return out
+    }
+
+    /* ---- Classification ---- */
+    async function classify(frame) {
+      if (!session) return
+      const input = new ort.Tensor('float32', frame, [1, CLIP_LEN])
+      const outMap = await session.run({ [session.inputNames[0]]: input })
+      const logits = outMap[session.outputNames[0]].data
+      // argmax
+      let best = 0
+      for (let i = 1; i < logits.length; ++i) if (logits[i] > logits[best]) best = i
+      document.getElementById('result').textContent = 'Predicted class: ' + best
+      console.log('logits:', logits, '→', best)
+    }
+
+    /* ---- Microphone flow ---- */
+    async function startListening() {
+      if (listening) return
+      listening = true
+      document.getElementById('mic-btn').classList.add('active')
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      ctx = new AudioContext()
+
+      // Worklet to tap raw PCM frames → main thread
+      await ctx.audioWorklet.addModule(
+        URL.createObjectURL(
+          new Blob(
+            [
+              `
+                                class Tap extends AudioWorkletProcessor {
+                                  process(inputs) {
+                                    this.port.postMessage(inputs[0][0]); /* mono */
+                                    return true;
+                                  }
+                                }
+                                registerProcessor('tap', Tap);
+                              `
+            ],
+            { type: 'application/javascript' }
+          )
+        )
+      )
+
+      const src = ctx.createMediaStreamSource(stream)
+      const tap = new AudioWorkletNode(ctx, 'tap')
+      src.connect(tap)
+
+      const ratio = ctx.sampleRate / SAMPLE_RATE // e.g. 48000 / 16000 = 3
+      tap.port.onmessage = ({ data }) => {
+        const block = downsample(data, ratio)
+        for (let i = 0; i < block.length; ++i) {
+          ring[ringPos++] = block[i]
+          if (ringPos === CLIP_LEN) {
+            classify(ring.slice())
+            ringPos = 0
+          }
+        }
+      }
+    }
+
+    /* ---- Entry point ---- */
+    document.getElementById('mic-btn').addEventListener('click', async () => {
+      await loadModel()
+      await startListening()
+    })
+  </script>
+</body>
+
+</html>
