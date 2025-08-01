@@ -10,11 +10,12 @@ Requirements:
 
 from pydub import AudioSegment, silence
 from pathlib import Path
-# import os
+import os
 
 
 def split_clicks(
     input_path: str,
+    folder: str,
     export_dir: str = "clicks",
     silence_thresh_db: int = -25,    # raise (e.g. -20) if it misses clicks,
     min_silence_ms: int = 50,        # lower (e.g. 30) if clicks are very rapid
@@ -54,7 +55,9 @@ def split_clicks(
 
     for idx, (start_ms, end_ms) in enumerate(non_silent_ranges, start=1):
         clip = audio[max(0, start_ms - pad_ms): min(len(audio), end_ms + pad_ms)]
-        out_path = Path(export_dir) / f"{input_path.replace(".m4a", "")}_{idx:04d}.wav"
+        file_name_without_ext = os.path.splitext(os.path.basename(input_path))[0]
+        out_path = os.path.join(export_dir, f"{folder}_{file_name_without_ext}_{idx:04d}.wav")
+        # print(input_path)
         clip.export(out_path, format="wav")
         print(f"Saved: {out_path}")
 
@@ -62,5 +65,15 @@ def split_clicks(
 
 
 if __name__ == "__main__":
-    for i in range(10):
-        split_clicks(f"{i}.m4a", export_dir=f"{i}")
+    for folder in os.listdir("unzip"):
+        # if os.path.isdir(os.path.join("./unzip", folder)):
+        for file in os.listdir(os.path.join("unzip", folder)):
+            print(folder)
+            if file.endswith(".m4a"):
+                input_file = os.path.join("unzip", folder, file)
+                print(f"Processing: {input_file}")
+                split_clicks(
+                    input_file,
+                    folder,
+                    export_dir=os.path.join("datasets", file.replace(".m4a", ""))
+                )

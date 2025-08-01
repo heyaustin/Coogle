@@ -8,237 +8,353 @@
 
   <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 
   <style>
-    /* ---- Google‑style layout ---- */
+    :root {
+      /* brand palette */
+      --blue: #4285f4;
+      --red: #ea4335;
+      --yellow: #fbbc05;
+      --green: #34a853;
+
+      /* light theme */
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --text: #202124;
+      --shadow: rgba(0, 0, 0, 0.15);
+    }
+
+    /* dark‑mode override */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #202124;
+        --surface: #303134;
+        --text: #e8eaed;
+        --shadow: rgba(0, 0, 0, 0.45);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     html,
     body {
-      margin: 0;
       height: 100%;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #fff;
+      font-family: "Roboto", Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding: 1rem;
+      animation: fade-in 0.4s ease-out;
     }
 
-    /* Logo using Google colours */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* -------- Google wordmark -------- */
     #logo {
-      font-size: 4rem;
+      font-size: clamp(2.5rem, 7vw, 4.5rem);
       font-weight: 700;
       letter-spacing: -2px;
       margin-bottom: 32px;
+      user-select: none;
     }
 
     #logo span:nth-child(1) {
-      color: #4285f4;
+      color: var(--blue);
     }
 
-    /* G */
     #logo span:nth-child(2) {
-      color: #ea4335;
+      color: var(--red);
     }
 
-    /* o */
     #logo span:nth-child(3) {
-      color: #fbbc05;
+      color: var(--yellow);
     }
 
-    /* o */
     #logo span:nth-child(4) {
-      color: #4285f4;
+      color: var(--blue);
     }
 
-    /* g */
     #logo span:nth-child(5) {
-      color: #34a853;
+      color: var(--green);
     }
 
-    /* l */
     #logo span:nth-child(6) {
-      color: #ea4335;
+      color: var(--red);
     }
 
-    /* e */
-
-    /* Search bar container */
+    /* -------- Search box -------- */
     #search-container {
-      position: relative;
-      width: 90%;
-      max-width: 600px;
+      width: 100%;
+      max-width: 640px;
     }
 
-    /* Input styling */
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border-radius: 32px;
+      padding: 0.75rem 1.25rem;
+      box-shadow: 0 2px 6px var(--shadow);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
     #search-input {
-      /* width: 100%; */
-      font-size: 1.1rem;
-      padding: 12px 48px 12px 16px;
-      border: 1px solid #dfe1e5;
-      border-radius: 24px;
-      outline: none;
-      box-sizing: border-box;
-      transition: box-shadow 0.2s, border 0.2s;
-    }
-
-    #search-input:focus {
-      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
-      border-color: transparent;
-    }
-
-    /* Microphone button */
-    #mic-btn {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
+      flex: 1;
+      font-size: 1.125rem;
       border: none;
-      padding: 0;
-      cursor: pointer;
+      outline: none;
+      background: transparent;
+      color: inherit;
     }
 
-    #mic-btn svg {
+    /* -------- Icon buttons -------- */
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .icon-btn:hover {
+      background: rgba(66, 133, 244, 0.12);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.9);
+    }
+
+    .icon-btn svg {
       width: 24px;
       height: 24px;
-      fill: #4285f4;
-      transition: transform 0.2s;
+      fill: var(--blue);
     }
 
-    #mic-btn.active svg {
-      transform: scale(1.15);
-    }
-
-    /* Prediction read‑out */
     #result {
-      margin-top: 24px;
-      font-size: 1.2rem;
-      color: #555;
-      min-height: 1.2rem;
-      /* reserve space */
+      margin-top: 28px;
+      font-size: 1.25rem;
+      min-height: 1.25rem;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
-  <!-- Google‑style logo (text version) -->
-  <div id="logo">
+  <!-- Wordmark -->
+  <div id="logo" aria-label="Google" role="img">
     <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
   </div>
 
-  <!-- Search bar with microphone -->
+  <!-- Search field -->
   <div id="search-container">
-    <input id="search-input" type="text" placeholder="Search" />
-    <button id="mic-btn" aria-label="Voice search">
-      <!-- Material mic icon (24 × 24) -->
-      <svg viewBox="0 0 24 24">
-        <path
-          d="M12 15a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zm-5 8v4h-2v-4h2z" />
-      </svg>
-    </button>
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="Search" autocomplete="off" />
+
+      <!-- Voice search -->
+      <button id="mic-btn" class="icon-btn" aria-label="Voice search">
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path
+            d="M12 15a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zm-5 8v4h-2v-4h2z" />
+        </svg>
+      </button>
+
+      <!-- Upload audio (.wav / .m4a) -->
+      <button id="upload-btn" class="icon-btn" aria-label="Upload audio file (.wav or .m4a)">
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v4h4V7h3l-5-5z" />
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <div id="result"></div>
+  <div id="result" aria-live="polite"></div>
 
   <script type="module">
-    import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/esm/ort.min.js'
+    import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/esm/ort.min.js';
 
-    /* ---- MODEL CONFIG ---- */
-    const MODEL_URL = '/static/model.onnx' // <–– drop your model beside this file
-    const SAMPLE_RATE = 16_000 // Hz expected by the model
-    const CLIP_LEN = SAMPLE_RATE // 1‑second window
-    const WASM_PATH = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/'
+    /* ---------- MODEL CONFIG ---------- */
+    // const MODEL_URL = '/static/model_750_per_label.onnx';
+    const MODEL_URL = '/static/model.onnx';
+    const SAMPLE_RATE = 16_000; // Hz expected by the model
+    const CLIP_LEN = SAMPLE_RATE; // 1‑second window
+    const WASM_PATH = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
 
-    /* ---- GLOBAL STATE ---- */
-    let session
-    let ctx
-    let ring = new Float32Array(CLIP_LEN)
-    let ringPos = 0
-    let listening = false
+    /* ---------- SILENCE CONFIG ---------- */
+    const SILENCE_THRESH_DB = -25; // dBFS
+    const MIN_SILENCE_MS = 50; // contiguous silence span to detect trim points
+    const KEEP_SILENCE_MS = 10;  // keep 10 ms head/tail
 
-    /* ---- ORT init ---- */
-    ort.env.wasm.wasmPaths = WASM_PATH
+    const CHUNK_LEN = Math.round(SAMPLE_RATE / 1000 * MIN_SILENCE_MS); // 50 ms in samples
+    const SILENCE_THRESH_AMP = Math.pow(10, SILENCE_THRESH_DB / 20);
+    console.log('CHUNK_LEN', CHUNK_LEN);
+    // const MIN_SILENCE_SAMPLES = Math.round((MIN_SILENCE_MS / 1000) * SAMPLE_RATE);
+    // const KEEP_SAMPLES = Math.round((KEEP_SILENCE_MS / 1000) * SAMPLE_RATE);
+
+    /* ---------- ORT setup ---------- */
+    ort.env.wasm.wasmPaths = WASM_PATH;
+    let session;
     async function loadModel() {
-      if (session) return session
-      session = await ort.InferenceSession.create(MODEL_URL, {
-        executionProviders: ['wasm']
-      })
-      console.log('Model ready:', session.inputNames, session.outputNames)
-      return session
+      if (session) return session;
+      session = await ort.InferenceSession.create(MODEL_URL, { executionProviders: ['wasm'] });
+      return session;
     }
 
-    /* ---- Resample helper (naïve) ---- */
-    function downsample(buf, ratio) {
-      const n = Math.floor(buf.length / ratio)
-      const out = new Float32Array(n)
-      for (let i = 0; i < n; ++i) out[i] = buf[i * ratio]
-      return out
-    }
-
-    /* ---- Classification ---- */
-    async function classify(frame) {
-      if (!session) return
-      const input = new ort.Tensor('float32', frame, [1, CLIP_LEN])
-      const outMap = await session.run({ [session.inputNames[0]]: input })
-      const logits = outMap[session.outputNames[0]].data
-      // argmax
-      let best = 0
-      for (let i = 1; i < logits.length; ++i) if (logits[i] > logits[best]) best = i
-      document.getElementById('result').textContent = 'Predicted class: ' + best
-      console.log('logits:', logits, '→', best)
-    }
-
-    /* ---- Microphone flow ---- */
-    async function startListening() {
-      if (listening) return
-      listening = true
-      document.getElementById('mic-btn').classList.add('active')
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      ctx = new AudioContext()
-
-      // Worklet to tap raw PCM frames → main thread
-      await ctx.audioWorklet.addModule(
-        URL.createObjectURL(
-          new Blob(
-            [
-              `
-                                class Tap extends AudioWorkletProcessor {
-                                  process(inputs) {
-                                    this.port.postMessage(inputs[0][0]); /* mono */
-                                    return true;
-                                  }
-                                }
-                                registerProcessor('tap', Tap);
-                              `
-            ],
-            { type: 'application/javascript' }
+    function softmax(arr) {
+      return arr.map(function (value, index) {
+        return Math.exp(value) / arr.map(
+          function (y /*value*/) { return Math.exp(y) }).reduce(
+            function (a, b) { return a + b }
           )
-        )
-      )
+      })
+    }
 
-      const src = ctx.createMediaStreamSource(stream)
-      const tap = new AudioWorkletNode(ctx, 'tap')
-      src.connect(tap)
+    async function classify(frame, file_name) {
+      if (!session) return;
+      const input = new ort.Tensor('float32', frame, [1, CLIP_LEN]);
+      const output = await session.run({ [session.inputNames[0]]: input });
+      const logits_sfmax = softmax(output[session.outputNames[0]].data);
 
-      const ratio = ctx.sampleRate / SAMPLE_RATE // e.g. 48000 / 16000 = 3
-      tap.port.onmessage = ({ data }) => {
-        const block = downsample(data, ratio)
-        for (let i = 0; i < block.length; ++i) {
-          ring[ringPos++] = block[i]
-          if (ringPos === CLIP_LEN) {
-            classify(ring.slice())
-            ringPos = 0
+      // get top three logits
+      const top3 = Array.from(logits_sfmax)
+        .map((value, index) => ({ value, index }))
+        .sort((a, b) => b.value - a.value);
+      // .slice(0, 2);
+      // keep only the indices
+      top3.forEach((item, i) => top3[i] = item.index);
+      console.log('Processing file:', file_name);
+      console.log("Top pick: ", top3[0], logits_sfmax[top3[0]]);
+      console.log('Second pick: ', top3[1], logits_sfmax[top3[1]]);
+
+      document.getElementById('result').innerHTML =
+        `File: ${file_name}<br/>` +
+        `Top pick: ${top3[0]} (${logits_sfmax[top3[0]].toFixed(2)})<br/>` +
+        `Second pick: ${top3[1]} (${logits_sfmax[top3[1]].toFixed(2)})<br/>`;
+    }
+
+    function filterSubsequences(arr, thresh) {
+      const tempResult = [];
+      let temp = [];
+
+      for (let i = 0; i <= arr.length; i++) {
+        if (i < arr.length && arr[i] < thresh) {
+          temp.push(arr[i]);
+        } else {
+          if (temp.length >= CHUNK_LEN && temp.every(val => val < thresh)) {
+            // Skip silent chunk
+          } else {
+            tempResult.push(...temp);
           }
+          if (i < arr.length) tempResult.push(arr[i]);
+          temp = [];
         }
       }
+
+      return new Float32Array(tempResult);
     }
 
-    /* ---- Entry point ---- */
-    document.getElementById('mic-btn').addEventListener('click', async () => {
-      await loadModel()
-      await startListening()
-    })
+    /* ---------- File‑upload flow ---------- */
+    async function processFile(file) {
+      await loadModel();
+      const arrayBuf = await file.arrayBuffer();
+      // const arrayBuf = outputData.buffer;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuf = await ctx.decodeAudioData(arrayBuf); // browser can decode WAV & AAC (.m4a)
+      console.log({
+        channels: audioBuf.numberOfChannels,
+        length: audioBuf.length,
+        sampleRate: audioBuf.sampleRate,
+        duration: audioBuf.duration
+      });
+
+      var offlineCtx = new OfflineAudioContext(
+        audioBuf.numberOfChannels,
+        audioBuf.duration * SAMPLE_RATE,
+        SAMPLE_RATE
+      );
+
+      var offlineSource = offlineCtx.createBufferSource();
+      offlineSource.buffer = audioBuf;
+      offlineSource.connect(offlineCtx.destination);
+      offlineSource.start();
+      offlineCtx.startRendering().then((resampled) => {
+        let data;
+
+        // `resampled` contains an AudioBuffer resampled at 16000Hz.
+        // use resampled.getChannelData(x) to get an Float32Array for channel x.
+        if (resampled.numberOfChannels > 2) {
+          console.warn('Audio has more than 2 channels, using first two channels only');
+        } else if (resampled.numberOfChannels === 1) {
+          data = resampled.getChannelData(0);
+        } else if (resampled.numberOfChannels === 2) {
+          data = new Float32Array(resampled.length);
+          const left = resampled.getChannelData(0);
+          const right = resampled.getChannelData(1);
+          for (let i = 0; i < resampled.length; i++) {
+            data[i] = (left[i] + right[i]) / 2;
+          }
+        }
+
+        console.log("data[0]", data[0]);
+        console.log("SILENCE_THRESH_AMP", SILENCE_THRESH_AMP);
+        console.log('Org Data shape:', data.length);
+
+        data = filterSubsequences(data, SILENCE_THRESH_AMP);
+        console.log('NoSilence Data shape:', data.length);
+
+        if (data.length < CLIP_LEN) {
+          const padded = new Float32Array(CLIP_LEN);
+          padded.set(data);
+          data = padded;
+        } else if (data.length > CLIP_LEN) {
+          data = data.slice(0, CLIP_LEN);
+        }
+
+        // console.log("maxmin", Math.max.apply(Math,data), Math.min.apply(Math,data));
+        classify(data, file.name);
+      });
+    }
+
+    /* ---------- UI wiring ---------- */
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.wav,.m4a,audio/wav,audio/mp4,audio/x-m4a';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    document.getElementById('upload-btn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+      e.target.value = '';
+    });
   </script>
 </body>
 
