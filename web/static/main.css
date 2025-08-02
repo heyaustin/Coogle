@@ -1,0 +1,154 @@
+:root {
+    /* brand palette */
+    --blue: #4285f4;
+    --red: #ea4335;
+    --yellow: #fbbc05;
+    --green: #34a853;
+
+    /* light theme */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --text: #202124;
+    --shadow: rgba(0, 0, 0, 0.15);
+}
+
+/* dark‑mode override */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #202124;
+        --surface: #303134;
+        --text: #e8eaed;
+        --shadow: rgba(0, 0, 0, 0.45);
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: "Roboto", Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fade-in 0.4s ease-out;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* -------- Google wordmark -------- */
+#logo {
+    /* font-size: clamp(2.5rem, 7vw, 4.5rem); */
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    margin-bottom: 32px;
+    user-select: none;
+}
+
+#logo span:nth-child(1) {
+    color: var(--blue);
+}
+
+#logo span:nth-child(2) {
+    color: var(--red);
+}
+
+#logo span:nth-child(3) {
+    color: var(--yellow);
+}
+
+#logo span:nth-child(4) {
+    color: var(--blue);
+}
+
+#logo span:nth-child(5) {
+    color: var(--green);
+}
+
+#logo span:nth-child(6) {
+    color: var(--red);
+}
+
+/* -------- Search box -------- */
+#search-container {
+    width: 100%;
+    max-width: 640px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border-radius: 32px;
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 2px 6px var(--shadow);
+    transition: box-shadow 0.2s ease;
+}
+
+.search-box:focus-within {
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+#search-input {
+    flex: 1;
+    font-size: 1.125rem;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: inherit;
+}
+
+/* -------- Icon buttons -------- */
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(66, 133, 244, 0.12);
+}
+
+.icon-btn:active {
+    transform: scale(0.9);
+}
+
+.icon-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--blue);
+}
+
+#result {
+    margin-top: 28px;
+    font-size: 2.25rem;
+    min-height: 1.25rem;
+    text-align: center;
+}

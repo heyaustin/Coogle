@@ -118,6 +118,7 @@ class CNNKeyword(nn.Module):
 if __name__ == "__main__":
     # 3. Prepare data loaders
     dataset = SpeechCommands10(DATA_DIR, mfcc_transform)
+    extra_test = SpeechCommands10("./1_9", mfcc_transform)
 
     # Train/val/test split (stratified via indices per class)
     labels = dataset.targets
@@ -136,6 +137,7 @@ if __name__ == "__main__":
     train_subset, val_subset = random_split(train_subset, [train_size, val_size])
 
     train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
+    extra_test_loader = DataLoader(extra_test, batch_size=BATCH_SIZE, shuffle=False)
     val_loader = DataLoader(val_subset, batch_size=BATCH_SIZE)
     test_loader = DataLoader(test_subset, batch_size=BATCH_SIZE)
 
@@ -171,6 +173,11 @@ if __name__ == "__main__":
                 preds = logits.argmax(dim=1)
                 correct += (preds == target).sum().item()
                 total += target.size(0)
+            for mfcc, target in extra_test_loader:
+                mfcc, target = mfcc.to(device), target.to(device)
+                logits = model(mfcc.unsqueeze(1))
+                preds = logits.argmax(dim=1)
+                print("label and pred:", target, preds)
 
         val_acc = correct / total
         print(f"Epoch {epoch:02d} | val_acc = {val_acc:.4f}")
